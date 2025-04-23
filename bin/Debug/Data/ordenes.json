@@ -100,5 +100,136 @@
       }
     ],
     "Total": 2.50
+  },
+  {
+    "Id": 7,
+    "Fecha": "2025-04-22T23:01:35.664964-06:00",
+    "Items": [
+      {
+        "Producto": {
+          "Id": 11,
+          "Nombre": "Pizza",
+          "Categoria": "Comida",
+          "Precio": 7.00
+        },
+        "Cantidad": 5,
+        "Subtotal": 35.00
+      },
+      {
+        "Producto": {
+          "Id": 12,
+          "Nombre": "Hot Dog",
+          "Categoria": "Comida",
+          "Precio": 5.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 5.00
+      },
+      {
+        "Producto": {
+          "Id": 13,
+          "Nombre": "Nachos",
+          "Categoria": "Comida",
+          "Precio": 6.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 6.00
+      }
+    ],
+    "Total": 46.00
+  },
+  {
+    "Id": 8,
+    "Fecha": "2025-04-22T23:01:48.5793978-06:00",
+    "Items": [
+      {
+        "Producto": {
+          "Id": 7,
+          "Nombre": "Cerveza Importada",
+          "Categoria": "Cervezas",
+          "Precio": 5.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 5.00
+      },
+      {
+        "Producto": {
+          "Id": 8,
+          "Nombre": "Cerveza Artesanal",
+          "Categoria": "Cervezas",
+          "Precio": 6.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 6.00
+      },
+      {
+        "Producto": {
+          "Id": 9,
+          "Nombre": "Cerveza de Cáñamo",
+          "Categoria": "Cervezas",
+          "Precio": 7.50
+        },
+        "Cantidad": 1,
+        "Subtotal": 7.50
+      },
+      {
+        "Producto": {
+          "Id": 2,
+          "Nombre": "Gaseosa",
+          "Categoria": "Bebidas",
+          "Precio": 2.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 2.00
+      },
+      {
+        "Producto": {
+          "Id": 3,
+          "Nombre": "Refresco",
+          "Categoria": "Bebidas",
+          "Precio": 2.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 2.00
+      },
+      {
+        "Producto": {
+          "Id": 4,
+          "Nombre": "Jugo",
+          "Categoria": "Bebidas",
+          "Precio": 2.50
+        },
+        "Cantidad": 1,
+        "Subtotal": 2.50
+      }
+    ],
+    "Total": 25.00
+  },
+  {
+    "Id": 9,
+    "Fecha": "2025-04-22T23:02:02.2428818-06:00",
+    "Items": [
+      {
+        "Producto": {
+          "Id": 3,
+          "Nombre": "Refresco",
+          "Categoria": "Bebidas",
+          "Precio": 2.00
+        },
+        "Cantidad": 1,
+        "Subtotal": 2.00
+      },
+      {
+        "Producto": {
+          "Id": 4,
+          "Nombre": "Jugo",
+          "Categoria": "Bebidas",
+          "Precio": 2.50
+        },
+        "Cantidad": 1,
+        "Subtotal": 2.50
+      }
+    ],
+    "Total": 4.50
   }
 ]

@@ -33,6 +33,7 @@ namespace WLFAPP
         private Button btnCancelarOrden;
         private Button btnEliminarItem;
         private ListBox lstOrdenActual;
+        private DataGridView dgvOrdenActual;
 
         public Form1()
         {
@@ -125,73 +126,56 @@ namespace WLFAPP
             };
             panelOrden.Controls.Add(lblTituloOrden);
 
+
             // Contenedor para la lista de orden
             Panel panelListaOrden = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
-                Margin = new Padding(5),
-                Padding = new Padding(2)
-            };
-            panelOrden.Controls.Add(panelListaOrden);
-
-            lstOrdenActual = new ListBox
-            {
-                Dock = DockStyle.Fill,
-                Font = new Font("Arial", 12),
-                BorderStyle = BorderStyle.None,
-                SelectionMode = SelectionMode.One,
-                BackColor = Color.White,
-                IntegralHeight = false, // Importante para que el scroll funcione correctamente
-                HorizontalScrollbar = false,
-                DrawMode = DrawMode.OwnerDrawFixed,
-                ItemHeight = 30 // Altura fija para cada ítem
-            };
-
-
-            // Personalizar el dibujo de cada ítem
-            lstOrdenActual.DrawItem += (sender, e) =>
-            {
-                if (e.Index < 0) return;
-
-                e.DrawBackground();
-
-                // Color de selección personalizado
-                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(220, colorVerdeClaro)), e.Bounds);
-                }
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Margin = new Padding(5),
+                    Padding = new Padding(2)
+                };
+                panelOrden.Controls.Add(panelListaOrden);
 
-                // Dibujar el texto con mejor formato
-                if (e.Index < lstOrdenActual.Items.Count)
-                {
-                    string text = lstOrdenActual.Items[e.Index].ToString();
-                    using (Font font = new Font("Arial", 11))
+            
+                // Usar DataGridView en lugar de ListBox
+                dgvOrdenActual = new DataGridView
                     {
-                        // Sombreado suave bajo el texto para legibilidad
-                        Rectangle textRect = new Rectangle(
-                            e.Bounds.Left + 5,
-                            e.Bounds.Top + 5,
-                            e.Bounds.Width - 10,
-                            e.Bounds.Height - 10);
+                        Dock = DockStyle.Fill,
+                        BackgroundColor = Color.White,
+                        BorderStyle = BorderStyle.None,
+                        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                        RowHeadersVisible = false,
+                        AllowUserToAddRows = false,
+                        AllowUserToDeleteRows = false,
+                        AllowUserToResizeRows = false,
+                        SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                        MultiSelect = false,
+                        ReadOnly = true,
+                        Font = new Font("Arial", 11),
+                        ColumnHeadersHeight = 30
+                    };
 
-                        e.Graphics.DrawString(text, font, Brushes.Black, textRect);
-                    }
-                }
+                // Configurar las columnas del DataGridView
+                dgvOrdenActual.Columns.Add("Cantidad", "Cant.");
+                dgvOrdenActual.Columns.Add("Nombre", "Producto");
+                dgvOrdenActual.Columns.Add("Precio", "Precio");
+                dgvOrdenActual.Columns.Add("Subtotal", "Subtotal");
 
-                e.DrawFocusRectangle();
-            };
+                // Ajustar el ancho de las columnas
+                dgvOrdenActual.Columns["Cantidad"].Width = 40;
+                dgvOrdenActual.Columns["Nombre"].Width = 130;
+                dgvOrdenActual.Columns["Precio"].Width = 60;
+                dgvOrdenActual.Columns["Subtotal"].Width = 70;
 
+                // Configurar eventos
+                dgvOrdenActual.SelectionChanged += (s, e) =>
+                {
+                    btnEliminarItem.Enabled = dgvOrdenActual.SelectedRows.Count > 0;
+                };
 
-            // Asegurarnos que la selección se actualice correctamente
-            lstOrdenActual.SelectedIndexChanged += (s, e) =>
-            {
-                btnEliminarItem.Enabled = lstOrdenActual.SelectedIndex != -1;
-                lstOrdenActual.Invalidate(); // Forzar redibujado
-            };
-
-            panelListaOrden.Controls.Add(lstOrdenActual);
+                panelListaOrden.Controls.Add(dgvOrdenActual);
 
             // Panel de total y botones con mejor disposición
             Panel panelTotal = new Panel
@@ -304,7 +288,7 @@ namespace WLFAPP
 
         private void EliminarItemSeleccionado(object sender, EventArgs e)
         {
-            if (lstOrdenActual.SelectedIndex == -1) return;
+            if (dgvOrdenActual.SelectedRows.Count == 0) return;
 
             DialogResult respuesta = MessageBox.Show(
                 "¿Eliminar este item de la orden?",
@@ -315,12 +299,18 @@ namespace WLFAPP
 
             if (respuesta == DialogResult.Yes)
             {
-                ordenActual.RemoveAt(lstOrdenActual.SelectedIndex);
+                // Obtener el índice de la fila seleccionada
+                int selectedRowIndex = dgvOrdenActual.SelectedRows[0].Index;
+
+                // Eliminar el item de la orden
+                ordenActual.RemoveAt(selectedRowIndex);
+
+                // Actualizar la vista
                 ActualizarVistaOrden();
+
                 MessageBox.Show("Item eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-
         private void MostrarProductosCategoria(string categoria)
         {
             panelProductos.Controls.Clear();
@@ -378,26 +368,32 @@ namespace WLFAPP
 
         private void ActualizarVistaOrden()
         {
-            lstOrdenActual.Items.Clear(); // Limpiar la lista antes de actualizar
+            dgvOrdenActual.Rows.Clear(); // Limpiar el grid
 
             foreach (var item in ordenActual)
             {
                 item.Subtotal = item.Producto.Precio * item.Cantidad;
-                lstOrdenActual.Items.Add($"{item.Cantidad}x {item.Producto.Nombre} - ${item.Subtotal:F2}");
+
+                // Agregar una fila al DataGridView
+                int index = dgvOrdenActual.Rows.Add(
+                    item.Cantidad.ToString(),
+                    item.Producto.Nombre,
+                    $"${item.Producto.Precio:F2}",
+                    $"${item.Subtotal:F2}"
+                );
+
+                // Almacenar una referencia al item para poder identificarlo luego
+                dgvOrdenActual.Rows[index].Tag = item;
             }
 
             decimal total = ordenActual.Sum(i => i.Subtotal);
             lblTotal.Text = $"Total: ${total:F2}";
 
-            // Refrescar visualmente la lista
-            lstOrdenActual.Refresh();
-
             // Habilitar/deshabilitar botones según corresponda
             btnFinalizarOrden.Enabled = ordenActual.Count > 0;
             btnCancelarOrden.Enabled = ordenActual.Count > 0;
-            btnEliminarItem.Enabled = lstOrdenActual.SelectedIndex != -1;
+            btnEliminarItem.Enabled = dgvOrdenActual.SelectedRows.Count > 0;
         }
-
 
         private void FinalizarOrden(object sender, EventArgs e)
         {
