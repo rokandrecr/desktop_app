@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Text;
 using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 
 namespace WLFAPP
 {
@@ -54,12 +55,13 @@ namespace WLFAPP
         {
             this.Controls.Clear();
 
-            // Panel de categorías
+            // Panel de categorías con scroll
             panelCategorias = new Panel
             {
                 Dock = DockStyle.Left,
                 Width = 150,
-                BackColor = colorVerde
+                BackColor = colorVerde,
+                AutoScroll = true // Habilitar scroll automático
             };
             this.Controls.Add(panelCategorias);
 
@@ -80,31 +82,38 @@ namespace WLFAPP
                     Font = new Font("Arial", 12, FontStyle.Bold)
                 };
                 btnCategoria.FlatAppearance.BorderSize = 0;
+
+                // Efectos visuales
+                btnCategoria.MouseEnter += (s, e) => { btnCategoria.BackColor = colorAmarillo; btnCategoria.ForeColor = Color.Black; };
+                btnCategoria.MouseLeave += (s, e) => { btnCategoria.BackColor = colorVerdeClaro; btnCategoria.ForeColor = Color.White; };
+
                 btnCategoria.Click += (s, e) => MostrarProductosCategoria(categoria);
                 panelCategorias.Controls.Add(btnCategoria);
                 buttonY += 60;
             }
 
-            // Panel de productos
+            // Panel de productos con scrolling
             panelProductos = new Panel
             {
                 Dock = DockStyle.Fill,
                 BackColor = colorFondo,
-                Padding = new Padding(10)
+                Padding = new Padding(10),
+                AutoScroll = true // Habilitar scroll automático
             };
             this.Controls.Add(panelProductos);
 
             // Panel de orden
+            // Panel de orden con un diseño más detallado
             panelOrden = new Panel
             {
                 Dock = DockStyle.Right,
                 Width = 300,
                 BackColor = Color.WhiteSmoke,
-                Padding = new Padding(10)
+                Padding = new Padding(5)
             };
             this.Controls.Add(panelOrden);
 
-            // Lista de orden actual
+            // Título de la orden con mejor formato
             Label lblTituloOrden = new Label
             {
                 Text = "Orden Actual",
@@ -116,30 +125,104 @@ namespace WLFAPP
             };
             panelOrden.Controls.Add(lblTituloOrden);
 
+            // Contenedor para la lista de orden
+            Panel panelListaOrden = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Margin = new Padding(5),
+                Padding = new Padding(2)
+            };
+            panelOrden.Controls.Add(panelListaOrden);
+
             lstOrdenActual = new ListBox
             {
                 Dock = DockStyle.Fill,
                 Font = new Font("Arial", 12),
-                FormattingEnabled = true,
-                ItemHeight = 24,
                 BorderStyle = BorderStyle.None,
-                ScrollAlwaysVisible = true // Para evitar cortes en la visualización
+                SelectionMode = SelectionMode.One,
+                BackColor = Color.White,
+                IntegralHeight = false, // Importante para que el scroll funcione correctamente
+                HorizontalScrollbar = false,
+                DrawMode = DrawMode.OwnerDrawFixed,
+                ItemHeight = 30 // Altura fija para cada ítem
             };
+
+
+            // Personalizar el dibujo de cada ítem
+            lstOrdenActual.DrawItem += (sender, e) =>
+            {
+                if (e.Index < 0) return;
+
+                e.DrawBackground();
+
+                // Color de selección personalizado
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(220, colorVerdeClaro)), e.Bounds);
+                }
+
+                // Dibujar el texto con mejor formato
+                if (e.Index < lstOrdenActual.Items.Count)
+                {
+                    string text = lstOrdenActual.Items[e.Index].ToString();
+                    using (Font font = new Font("Arial", 11))
+                    {
+                        // Sombreado suave bajo el texto para legibilidad
+                        Rectangle textRect = new Rectangle(
+                            e.Bounds.Left + 5,
+                            e.Bounds.Top + 5,
+                            e.Bounds.Width - 10,
+                            e.Bounds.Height - 10);
+
+                        e.Graphics.DrawString(text, font, Brushes.Black, textRect);
+                    }
+                }
+
+                e.DrawFocusRectangle();
+            };
+
+
+            // Asegurarnos que la selección se actualice correctamente
             lstOrdenActual.SelectedIndexChanged += (s, e) =>
             {
                 btnEliminarItem.Enabled = lstOrdenActual.SelectedIndex != -1;
+                lstOrdenActual.Invalidate(); // Forzar redibujado
             };
-            panelOrden.Controls.Add(lstOrdenActual);
 
-            // Panel de total y botones
+            panelListaOrden.Controls.Add(lstOrdenActual);
+
+            // Panel de total y botones con mejor disposición
             Panel panelTotal = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 180, // Adjusting Height
-                BackColor = Color.WhiteSmoke
+                Height = 180,
+                BackColor = Color.WhiteSmoke,
+                Padding = new Padding(5)
             };
 
-            // Botón eliminar item
+            // Label para el total con mejor formato
+            lblTotal = new Label
+            {
+                Text = "Total: $0.00",
+                Dock = DockStyle.Top,
+                Height = 40,
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = colorVerde
+            };
+            panelTotal.Controls.Add(lblTotal);
+
+            // Espacio entre el total y los botones
+            Panel panelEspacio = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 10
+            };
+            panelTotal.Controls.Add(panelEspacio);
+
+            // Botón eliminar con mejor estilo
             btnEliminarItem = new Button
             {
                 Text = "Eliminar Item",
@@ -155,24 +238,20 @@ namespace WLFAPP
             btnEliminarItem.Click += EliminarItemSeleccionado;
             panelTotal.Controls.Add(btnEliminarItem);
 
-            // Total
-            lblTotal = new Label
+            // Espacio entre botones
+            Panel panelEspacio2 = new Panel
             {
-                Text = "Total: $0.00",
                 Dock = DockStyle.Top,
-                Height = 50,
-                Font = new Font("Arial", 16, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleCenter,
-                ForeColor = colorVerde
+                Height = 5
             };
-            panelTotal.Controls.Add(lblTotal);
+            panelTotal.Controls.Add(panelEspacio2);
 
-            // Botones finalizar/cancelar
+            // Botón finalizar orden con mejor estilo
             btnFinalizarOrden = new Button
             {
                 Text = "Finalizar Orden",
-                Dock = DockStyle.Bottom,
-                Height = 50,
+                Dock = DockStyle.Top,
+                Height = 45,
                 BackColor = colorVerde,
                 ForeColor = Color.White,
                 Font = new Font("Arial", 14, FontStyle.Bold),
@@ -182,10 +261,19 @@ namespace WLFAPP
             btnFinalizarOrden.Click += FinalizarOrden;
             panelTotal.Controls.Add(btnFinalizarOrden);
 
+            // Espacio entre botones
+            Panel panelEspacio3 = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 5
+            };
+            panelTotal.Controls.Add(panelEspacio3);
+
+            // Botón cancelar orden
             btnCancelarOrden = new Button
             {
                 Text = "Cancelar Orden",
-                Dock = DockStyle.Bottom,
+                Dock = DockStyle.Top,
                 Height = 40,
                 BackColor = Color.FromArgb(231, 76, 60),
                 ForeColor = Color.White,
@@ -202,6 +290,16 @@ namespace WLFAPP
             {
                 MostrarProductosCategoria(categorias[0]);
             }
+
+            // Evento de redimensionamiento para la ventana
+            this.SizeChanged += (s, e) =>
+            {
+                // Solo redimensionar si ya hay una categoría seleccionada
+                if (panelProductos.Tag != null && panelProductos.Tag is string categoria)
+                {
+                    MostrarProductosCategoria(categoria);
+                }
+            };
         }
 
         private void EliminarItemSeleccionado(object sender, EventArgs e)
@@ -290,7 +388,16 @@ namespace WLFAPP
 
             decimal total = ordenActual.Sum(i => i.Subtotal);
             lblTotal.Text = $"Total: ${total:F2}";
+
+            // Refrescar visualmente la lista
+            lstOrdenActual.Refresh();
+
+            // Habilitar/deshabilitar botones según corresponda
+            btnFinalizarOrden.Enabled = ordenActual.Count > 0;
+            btnCancelarOrden.Enabled = ordenActual.Count > 0;
+            btnEliminarItem.Enabled = lstOrdenActual.SelectedIndex != -1;
         }
+
 
         private void FinalizarOrden(object sender, EventArgs e)
         {
